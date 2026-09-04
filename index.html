@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>중학교 필수 영단어 200선</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Arial,"Noto Sans KR",sans-serif;background:#eef3f8;color:#222;overflow:hidden}
+.app{height:100vh;display:flex;flex-direction:column}
+header{height:65px;padding:0 20px;background:white;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.08);flex-shrink:0}
+header h1{font-size:18px;margin:0}
+#counter{background:#2563eb;color:white;padding:7px 13px;border-radius:20px;font-size:14px;font-weight:bold}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:15px;touch-action:pan-y}
+.card{width:min(720px,100%);height:100%;max-height:780px;background:white;border-radius:25px;padding:25px;box-shadow:0 10px 35px rgba(0,0,0,.1);text-align:center;overflow-y:auto;transition:transform .25s,opacity .25s}
+.word-row{display:flex;justify-content:center;align-items:center;gap:12px}
+#word{margin:0;font-size:clamp(42px,8vw,70px);color:#2563eb}
+.listen-word,.example-listen,.control-btn{border:none;cursor:pointer;transition:.2s}
+.listen-word{font-size:24px;background:#dbeafe;border-radius:50%;width:48px;height:48px}
+.image-box{width:min(300px,80vw);height:190px;margin:22px auto;background:linear-gradient(135deg,#dbeafe,#eff6ff);border-radius:25px;display:flex;align-items:center;justify-content:center;font-size:100px;user-select:none}
+.meaning{margin-top:10px;font-size:20px}.part{color:#7c3aed;font-weight:bold}
+.examples-title{text-align:left;font-size:19px;font-weight:bold;margin:10px 0}
+.example{display:flex;align-items:center;text-align:left;background:#f8fafc;border-left:5px solid #2563eb;border-radius:10px;margin:10px 0;padding:12px;font-size:16px}
+.example-text{flex:1;line-height:1.5}.example-listen{margin-left:10px;font-size:19px;background:white;border-radius:50%;width:38px;height:38px}
+footer{height:80px;background:white;display:flex;justify-content:center;align-items:center;gap:12px;box-shadow:0 -2px 10px rgba(0,0,0,.06);flex-shrink:0}
+.control-btn{padding:11px 17px;border-radius:12px;background:#2563eb;color:white;font-size:15px;font-weight:bold}
+#autoBtn{background:#16a34a}#autoBtn.paused{background:#dc2626}
+@media(max-width:500px){.card{padding:18px;border-radius:20px}.image-box{height:160px;font-size:85px}.example{font-size:14px;padding:10px}.control-btn{padding:10px 13px;font-size:14px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1>📚 중학교 필수 영단어 200선</h1><div id="counter">1 / 200</div></header>
+<main id="swipeArea"><section class="card" id="card">
+<div class="word-row"><h2 id="word"></h2><button class="listen-word" onclick="speakWord()">🔊</button></div>
+<div class="meaning"><span class="part" id="part"></span> - <span id="meaning"></span></div>
+<div class="image-box" id="image"></div>
+<div class="examples-title">📝 예문 3가지</div><div id="examples"></div>
+</section></main>
+<footer><button class="control-btn" onclick="prevWord()">← 이전</button><button class="control-btn paused" id="autoBtn" onclick="toggleAuto()">▶ 재생</button><button class="control-btn" onclick="nextWord()">다음 →</button></footer>
+</div>
+<script>
+const base=[
+["accept","동사","받아들이다, 수락하다","🤝",["I accept your idea.","She accepted the gift.","Please accept my apology."]],
+["add","동사","더하다, 추가하다","➕",["Add two numbers together.","Please add some sugar.","He added a new picture."]],
+["agree","동사","동의하다","👍",["I agree with you.","They agreed to help us.","We all agree."]],
+["allow","동사","허락하다","🚪",["My parents allow me to play.","The teacher allowed us to leave.","Please allow me to explain."]],
+["answer","명사·동사","대답, 대답하다","💬",["I know the answer.","Please answer my question.","She answered quickly."]],
+["appear","동사","나타나다, ~처럼 보이다","✨",["A star appeared in the sky.","He appeared suddenly.","It appears easy."]],
+["arrive","동사","도착하다","🛬",["We arrived at school.","The train arrived late.","She will arrive tomorrow."]],
+["ask","동사","묻다, 부탁하다","🙋",["I asked a question.","Please ask your teacher.","She asked me for help."]],
+["become","동사","~이 되다","🌱",["He became a doctor.","It became dark.","I want to become strong."]],
+["begin","동사","시작하다","▶️",["Let's begin now.","The class begins at nine.","It began to rain."]],
+["believe","동사","믿다","🙏",["I believe you.","Do you believe in ghosts?","She believes his story."]],
+["borrow","동사","빌리다","📚",["Can I borrow your pen?","I borrowed a book.","Don't borrow too much money."]],
+["break","동사","깨다, 부수다","💥",["Don't break the glass.","He broke the window.","Be careful not to break it."]],
+["bring","동사","가져오다","🎁",["Please bring your book.","She brought me lunch.","Bring your umbrella."]],
+["build","동사","짓다, 만들다","🏗️",["They built a house.","We will build a robot.","He built a small table."]],
+["buy","동사","사다","🛒",["I want to buy a book.","She bought new shoes.","We bought some food."]],
+["call","동사·명사","부르다, 전화하다, 전화","📞",["Call me tonight.","I called my friend.","Give me a call."]],
+["carry","동사","나르다, 들고 가다","👜",["Please carry this bag.","He carries a backpack.","The truck carried food."]],
+["catch","동사","잡다","⚾",["Catch the ball.","I caught a fish.","Can you catch me?"]],
+["change","동사·명사","바꾸다, 변화","🔄",["Change your clothes.","The weather changed.","We need a change."]],
+["choose","동사","선택하다","☝️",["Choose one answer.","She chose a red dress.","You can choose anything."]],
+["clean","동사·형용사","청소하다, 깨끗한","🧹",["Clean your room.","My room is clean.","We cleaned the floor."]],
+["close","동사·형용사","닫다, 가까운","🚪",["Close the door.","The store is close.","Please close your eyes."]],
+["collect","동사","모으다","📦",["I collect coins.","She collects stamps.","Collect the trash."]],
+["come","동사","오다","🚶",["Come here.","He came home late.","Will you come tomorrow?"]],
+["complete","동사·형용사","완성하다, 완전한","✅",["Complete your homework.","The project is complete.","I completed the work."]],
+["continue","동사","계속하다","➡️",["Please continue reading.","The rain continued.","We continued our trip."]],
+["cook","동사·명사","요리하다, 요리사","👨‍🍳",["I can cook.","My mother cooks dinner.","He is a good cook."]],
+["create","동사","창조하다, 만들다","🎨",["Create something new.","She created a game.","They created a robot."]],
+["dance","동사·명사","춤추다, 춤","💃",["Let's dance.","She can dance well.","I love this dance."]],
+["decide","동사","결정하다","🤔",["Decide quickly.","I decided to stay.","She can't decide."]],
+["describe","동사","묘사하다, 설명하다","📝",["Describe the picture.","Can you describe him?","She described the place."]],
+["discover","동사","발견하다","🔎",["I discovered something new.","They discovered a cave.","She discovered the answer."]],
+["draw","동사","그리다","✏️",["Draw a picture.","She drew a cat.","I like to draw."]],
+["dream","명사·동사","꿈, 꿈꾸다","💭",["I had a strange dream.","Dream big.","She dreams of success."]],
+["drink","동사·명사","마시다, 음료","🥤",["Drink some water.","I drank milk.","This is my favorite drink."]],
+["drive","동사","운전하다","🚗",["My father can drive.","Drive carefully.","She drove home."]],
+["easy","형용사","쉬운","😊",["This question is easy.","English is not easy for me.","It looks easy."]],
+["eat","동사","먹다","🍽️",["Eat your breakfast.","I ate an apple.","Let's eat together."]],
+["enjoy","동사","즐기다","😄",["I enjoy music.","Enjoy your meal.","She enjoyed the trip."]],
+["explain","동사","설명하다","🗣️",["Please explain it.","He explained the rule.","Can you explain again?"]],
+["fall","동사","떨어지다","🍂",["Leaves fall in autumn.","Don't fall.","The glass fell down."]],
+["feel","동사","느끼다","❤️",["I feel happy.","How do you feel?","She felt tired."]],
+["find","동사","찾다, 발견하다","🔍",["Find your book.","I found my key.","Can you find it?"]],
+["finish","동사","끝내다","🏁",["Finish your homework.","I finished the book.","The game is finished."]],
+["follow","동사","따라가다, 따르다","👣",["Follow me.","Please follow the rules.","The dog followed me."]],
+["forget","동사","잊다","🤷",["Don't forget your bag.","I forgot his name.","She forgot to call me."]],
+["free","형용사","자유로운, 무료의","🕊️",["The bird is free.","This is free.","I am free today."]],
+["get","동사","얻다, 받다","🎁",["I got a gift.","Get some rest.","She gets good grades."]],
+["give","동사","주다","🎁",["Give me the book.","He gave me a present.","Please give it back."]],
+["go","동사","가다","🚶",["Go home.","I went to school.","Let's go together."]],
+["grow","동사","자라다, 키우다","🌱",["Plants grow fast.","Children grow every year.","Grow your own food."]],
+["happen","동사","일어나다, 발생하다","❓",["What happened?","It happened yesterday.","Anything can happen."]],
+["hear","동사","듣다","👂",["I can hear you.","Did you hear that?","She heard a noise."]],
+["help","동사·명사","돕다, 도움","🆘",["Help me, please.","I need your help.","She helped her friend."]],
+["hold","동사","잡다, 들다","✋",["Hold my hand.","He held the box.","Please hold this."]],
+["hope","동사·명사","희망하다, 희망","🌟",["I hope you are okay.","We hope to win.","Never lose hope."]],
+["important","형용사","중요한","⭐",["This is important.","Your health is important.","Remember the important rule."]],
+["improve","동사","향상시키다, 개선하다","📈",["Improve your English.","I want to improve.","She improved quickly."]],
+["include","동사","포함하다","📦",["The price includes food.","Include your name.","The list includes ten items."]],
+["introduce","동사","소개하다","🤝",["Let me introduce myself.","He introduced his friend.","I will introduce you."]],
+["invite","동사","초대하다","💌",["Invite your friends.","She invited me to dinner.","Thank you for inviting me."]],
+["join","동사","가입하다, 함께하다","👥",["Join our team.","I joined the club.","Come and join us."]],
+["keep","동사","유지하다, 계속하다","📌",["Keep the change.","Keep trying.","Please keep this secret."]],
+["know","동사","알다","💡",["I know the answer.","Do you know him?","She knows my name."]],
+["learn","동사","배우다","📖",["Learn English every day.","I learned something new.","We learn at school."]],
+["leave","동사","떠나다, 남기다","🚪",["Leave now.","He left the room.","Don't leave me alone."]],
+["lend","동사","빌려주다","🤲",["Lend me your pen.","She lent me a book.","Can you lend me money?"]],
+["like","동사·전치사","좋아하다, ~처럼","❤️",["I like pizza.","She likes music.","It looks like rain."]],
+["listen","동사","듣다","🎧",["Listen carefully.","I listen to music.","Please listen to me."]],
+["live","동사","살다","🏠",["I live in Korea.","They live together.","Fish live in water."]],
+["look","동사","보다","👀",["Look at me.","Look carefully.","She looked happy."]],
+["lose","동사","잃다, 지다","😞",["Don't lose your key.","Our team lost.","I lost my phone."]],
+["love","동사·명사","사랑하다, 사랑","💕",["I love my family.","She loves music.","Love is important."]],
+["make","동사","만들다","🛠️",["Make a cake.","I made a mistake.","Let's make a plan."]],
+["mean","동사","의미하다","❔",["What does this mean?","I mean it.","This word means happy."]],
+["meet","동사","만나다","🤝",["Nice to meet you.","Let's meet tomorrow.","I met her yesterday."]],
+["move","동사","움직이다, 이사하다","➡️",["Don't move.","The car moved slowly.","We moved last year."]],
+["need","동사","필요로 하다","❗",["I need help.","Do you need water?","She needs more time."]],
+["open","동사·형용사","열다, 열린","📖",["Open the door.","The store is open.","Please open your book."]],
+["order","명사·동사","순서, 주문하다","📋",["Put them in order.","I ordered pizza.","What is your order?"]],
+["pass","동사","지나가다, 건네주다","➡️",["Pass me the salt.","Time passes quickly.","The car passed us."]],
+["pay","동사","지불하다","💰",["I will pay.","Pay for your food.","She paid by card."]],
+["plan","명사·동사","계획, 계획하다","🗓️",["Make a plan.","We planned a trip.","What's your plan?"]],
+["play","동사","놀다, 연주하다","⚽",["Let's play soccer.","She plays the piano.","Children play outside."]],
+["practice","명사·동사","연습, 연습하다","🏃",["Practice every day.","I practice English.","Practice makes progress."]],
+["prepare","동사","준비하다","🎒",["Prepare for the test.","I prepared dinner.","Prepare your bag."]],
+["protect","동사","보호하다","🛡️",["Protect the earth.","Wear a helmet to protect your head.","Parents protect children."]],
+["put","동사","놓다","📍",["Put it here.","I put my bag down.","Put on your shoes."]],
+["read","동사","읽다","📚",["Read this book.","I read every night.","She likes to read."]],
+["receive","동사","받다","📨",["I received a letter.","She received a gift.","Did you receive it?"]],
+["remember","동사","기억하다","🧠",["Remember my name.","I remember that day.","Please remember this."]],
+["repeat","동사","반복하다","🔁",["Repeat after me.","Please repeat that.","The teacher repeated the question."]],
+["return","동사","돌아오다, 돌려주다","↩️",["Return home safely.","Please return my book.","He returned yesterday."]],
+["ride","동사","타다","🚲",["I ride a bike.","She rode a horse.","Let's ride together."]],
+["run","동사","달리다","🏃",["Run fast.","He runs every morning.","Don't run inside."]],
+["save","동사","구하다, 절약하다, 저장하다","💾",["Save your work.","Save some money.","He saved the dog."]],
+["say","동사","말하다","🗣️",["Say hello.","What did she say?","Don't say that."]],
+["see","동사","보다","👁️",["I can see you.","See you tomorrow.","Did you see it?"]],
+["sell","동사","팔다","🏪",["They sell fruit.","I sold my old bike.","This store sells books."]],
+["send","동사","보내다","📤",["Send me a message.","I sent an email.","Please send it today."]],
+["share","동사","공유하다, 나누다","🤲",["Share your food.","Let's share this.","She shared her idea."]],
+["show","동사","보여주다","👀",["Show me your work.","He showed me a photo.","Can you show me?"]],
+["sing","동사","노래하다","🎤",["Sing a song.","She sings well.","We sang together."]],
+["sit","동사","앉다","🪑",["Sit down.","I sat near the window.","Please sit here."]],
+["sleep","동사·명사","자다, 잠","😴",["Go to sleep.","I slept well.","I need more sleep."]],
+["speak","동사","말하다","💬",["Speak slowly.","Can you speak English?","She spoke to me."]],
+["spend","동사","쓰다, 보내다","⏰",["Don't spend too much money.","I spent time reading.","We spent the day together."]],
+["stand","동사","서다","🧍",["Stand up.","Please stand here.","He stood near me."]],
+["start","동사·명사","시작하다, 시작","🚀",["Start now.","The game starts soon.","Let's start the class."]],
+["stay","동사","머무르다","🏠",["Stay here.","I stayed home.","Please stay calm."]],
+["stop","동사·명사","멈추다, 정류장","🛑",["Stop talking.","The bus stopped.","Please stop now."]],
+["study","동사·명사","공부하다, 공부","📚",["Study hard.","I study English.","She is studying now."]],
+["suggest","동사","제안하다","💡",["I suggest this idea.","What do you suggest?","She suggested a new plan."]],
+["support","동사·명사","지지하다, 지원","🤝",["Support your friends.","Thank you for your support.","We support the team."]],
+["take","동사","가지고 가다, 데려가다","✋",["Take this bag.","Take a picture.","It takes time."]],
+["talk","동사","말하다, 이야기하다","🗨️",["Let's talk.","I talked to him.","Don't talk loudly."]],
+["teach","동사","가르치다","👩‍🏫",["Teachers teach students.","Teach me English.","She teaches math."]],
+["tell","동사","말하다, 알려주다","🗣️",["Tell me the truth.","He told me a story.","Please tell her."]],
+["think","동사","생각하다","🤔",["Think carefully.","I think so.","What do you think?"]],
+["travel","동사·명사","여행하다, 여행","✈️",["I want to travel.","They traveled by train.","Travel is fun."]],
+["try","동사","시도하다","💪",["Try again.","I will try my best.","Try this food."]],
+["turn","동사","돌다, 돌리다","↪️",["Turn left.","Turn the light off.","He turned around."]],
+["understand","동사","이해하다","💡",["I understand.","Do you understand?","She understood the question."]],
+["use","동사·명사","사용하다, 사용","🛠️",["Use this pen.","I use my computer.","How do you use it?"]],
+["visit","동사","방문하다","🏛️",["Visit my house.","We visited Seoul.","I want to visit Japan."]],
+["wait","동사","기다리다","⏳",["Wait for me.","Please wait here.","I waited for an hour."]],
+["walk","동사·명사","걷다, 산책","🚶",["Let's walk.","I walk to school.","Take a walk."]],
+["want","동사","원하다","🙋",["I want water.","What do you want?","She wants a new phone."]],
+["watch","동사·명사","보다, 시계","⌚",["Watch this video.","I watched a movie.","Look at my watch."]],
+["wear","동사","입다, 착용하다","👕",["Wear your coat.","She wears glasses.","What are you wearing?"]],
+["win","동사","이기다","🏆",["We can win.","Our team won.","I want to win."]],
+["work","동사·명사","일하다, 일","💼",["I work hard.","This machine works.","Good work!"]],
+["write","동사","쓰다","✍️",["Write your name.","I wrote a letter.","Write carefully."]],
+["young","형용사","어린, 젊은","🧒",["He is young.","Young people learn quickly.","She has a young brother."]],
+["able","형용사","할 수 있는","💪",["I am able to help.","She is able to swim.","Are you able to come?"]],
+["afraid","형용사","두려워하는","😨",["Don't be afraid.","I am afraid of dogs.","She was afraid."]],
+["beautiful","형용사","아름다운","🌸",["What a beautiful flower.","The sky is beautiful.","She has a beautiful voice."]],
+["busy","형용사","바쁜","📅",["I am busy today.","She looks busy.","The street is busy."]],
+["careful","형용사","조심하는","⚠️",["Be careful.","Drive carefully.","Be careful with glass."]],
+["different","형용사","다른","🔀",["We are different.","This is different.","Try a different way."]],
+["difficult","형용사","어려운","🧩",["This test is difficult.","English can be difficult.","The problem looks difficult."]],
+["early","형용사·부사","이른, 일찍","🌅",["Get up early.","I arrived early.","It is still early."]],
+["enough","형용사·부사","충분한, 충분히","👌",["I have enough money.","That's enough.","Are you old enough?"]],
+["excited","형용사","신나는, 흥분한","🤩",["I am excited.","She looks excited.","We are excited about the trip."]],
+["famous","형용사","유명한","⭐",["He is famous.","This city is famous.","A famous singer came here."]],
+["friendly","형용사","친절한","😊",["She is friendly.","Be friendly to others.","We met friendly people."]],
+["funny","형용사","웃긴, 재미있는","😂",["That is funny.","He told a funny story.","This movie is funny."]],
+["happy","형용사","행복한","😄",["I am happy.","She looks happy.","Happy birthday!"]],
+["healthy","형용사","건강한","🍎",["Eat healthy food.","I want to stay healthy.","Exercise is healthy."]],
+["hungry","형용사","배고픈","🍔",["I am hungry.","Are you hungry?","She was very hungry."]],
+["kind","형용사","친절한","💛",["He is kind.","Be kind to others.","Thank you for being kind."]],
+["large","형용사","큰","🐘",["This is a large room.","They have a large dog.","The city is very large."]],
+["late","형용사·부사","늦은, 늦게","🌙",["Don't be late.","I came home late.","It's too late."]],
+["lucky","형용사","운이 좋은","🍀",["You are lucky.","I feel lucky.","It was a lucky day."]],
+["popular","형용사","인기 있는","🔥",["This song is popular.","He is popular at school.","Soccer is very popular."]],
+["ready","형용사","준비된","🎯",["Are you ready?","I am ready now.","Dinner is ready."]],
+["safe","형용사","안전한","🛡️",["This place is safe.","Stay safe.","The children are safe."]],
+["simple","형용사","간단한","👌",["It's simple.","The answer is simple.","Use a simple method."]],
+["special","형용사","특별한","🎉",["Today is special.","This is a special gift.","You are special."]],
+["strong","형용사","강한","💪",["He is strong.","Be strong.","The wind is strong."]],
+["tired","형용사","피곤한","😫",["I am tired.","She feels tired.","Don't work when you are too tired."]],
+["useful","형용사","유용한","🔧",["This app is useful.","A dictionary is useful.","The information was useful."]],
+["wonderful","형용사","훌륭한, 멋진","🎆",["What a wonderful day!","You did a wonderful job.","The view is wonderful."]],
+["always","부사","항상","🔄",["I always try.","She is always kind.","Always be careful."]],
+["already","부사","이미","✅",["I already know.","She already left.","It is already late."]],
+["again","부사","다시","🔁",["Try again.","Say it again.","I want to see it again."]],
+["almost","부사","거의","🤏",["I am almost ready.","It's almost midnight.","We are almost there."]],
+["away","부사","멀리","🏃",["Go away.","He lives far away.","The bird flew away."]],
+["before","전치사·부사","전에","⏮️",["Come before noon.","Wash your hands before dinner.","I saw him before."]],
+["behind","전치사·부사","뒤에","🔙",["The cat is behind the box.","Look behind you.","He stood behind me."]],
+["between","전치사","~사이에","↔️",["Sit between us.","The store is between two banks.","Choose between A and B."]],
+["down","부사·전치사","아래로","⬇️",["Sit down.","Look down.","The ball rolled down."]],
+["every","형용사","모든","📅",["Every day is important.","I study every night.","Every student came."]],
+["inside","전치사·부사","안에","📦",["Come inside.","The key is inside the box.","Stay inside."]],
+["never","부사","결코 ~않다","🚫",["Never give up.","I never lie.","She never comes late."]],
+["often","부사","자주","🔁",["I often read books.","She often visits me.","How often do you exercise?"]],
+["only","부사·형용사","오직, 유일한","1️⃣",["I only have one.","You are the only one.","Only ten minutes left."]],
+["over","전치사·부사","위에, 끝난","⬆️",["The lamp is over the table.","The game is over.","Jump over it."]],
+["quickly","부사","빨리","⚡",["Run quickly.","She learned quickly.","Please answer quickly."]],
+["really","부사","정말로","💯",["I really like it.","Is that really true?","I really mean it."]],
+["sometimes","부사","가끔","🕐",["I sometimes walk.","Sometimes I feel tired.","She sometimes cooks."]],
+["soon","부사","곧","⏰",["See you soon.","Dinner will be ready soon.","He will come soon."]],
+["still","부사","여전히","⏳",["I still remember.","Are you still here?","It is still raining."]],
+["together","부사","함께","👫",["Let's study together.","We live together.","They worked together."]],
+["tomorrow","명사·부사","내일","📆",["See you tomorrow.","Tomorrow is Saturday.","I will do it tomorrow."]],
+["usually","부사","보통","🔄",["I usually wake up early.","She usually walks to school.","What do you usually eat?"]],
+["without","전치사","~없이","🚫",["Don't go without me.","Coffee without sugar, please.","I can't live without water."]],
+["world","명사","세계","🌍",["The world is big.","People around the world.","Travel the world."]],
+["problem","명사","문제","❓",["What is the problem?","I have a problem.","Let's solve the problem."]],
+["question","명사","질문","❔",["Ask a question.","I have a question.","Can you answer this question?"]],
+["reason","명사","이유","💭",["What is the reason?","There is a reason.","Tell me your reason."]],
+["school","명사","학교","🏫",["I go to school.","School starts at eight.","Our school is large."]],
+["student","명사","학생","🎒",["I am a student.","The students are studying.","Every student has a book."]],
+["teacher","명사","선생님","👩‍🏫",["My teacher is kind.","Ask your teacher.","The teacher entered the room."]],
+["friend","명사","친구","🧑‍🤝‍🧑",["He is my friend.","I met my friend.","Good friends help each other."]]
+];
+const exampleTranslations={"I accept your idea.": "나는 네 의견을 받아들인다.", "She accepted the gift.": "그녀는 그 선물을 받았다.", "Please accept my apology.": "내 사과를 받아줘.", "Add two numbers together.": "두 숫자를 더해라.", "Please add some sugar.": "설탕을 조금 넣어라.", "He added a new picture.": "그는 새 사진을 추가했다.", "I agree with you.": "나는 네 의견에 동의한다.", "They agreed to help us.": "그들은 우리를 돕기로 동의했다.", "We all agree.": "우리 모두 동의한다.", "My parents allow me to play.": "부모님은 내가 놀도록 허락하신다.", "The teacher allowed us to leave.": "선생님은 우리가 떠나는 것을 허락했다.", "Please allow me to explain.": "내가 설명하도록 허락해 줘.", "I know the answer.": "나는 답을 안다.", "Please answer my question.": "내 질문에 답해 줘.", "She answered quickly.": "그녀는 빠르게 대답했다.", "A star appeared in the sky.": "하늘에 별 하나가 나타났다.", "He appeared suddenly.": "그는 갑자기 나타났다.", "It appears easy.": "그것은 쉬워 보인다.", "We arrived at school.": "우리는 학교에 도착했다.", "The train arrived late.": "기차가 늦게 도착했다.", "She will arrive tomorrow.": "그녀는 내일 도착할 것이다.", "I asked a question.": "나는 질문을 했다.", "Please ask your teacher.": "선생님께 물어봐.", "She asked me for help.": "그녀는 나에게 도움을 요청했다.", "He became a doctor.": "그는 의사가 되었다.", "It became dark.": "어두워졌다.", "I want to become strong.": "나는 강해지고 싶다.", "Let's begin now.": "지금 시작하자.", "The class begins at nine.": "수업은 9시에 시작한다.", "It began to rain.": "비가 내리기 시작했다.", "I believe you.": "나는 너를 믿는다.", "Do you believe in ghosts?": "너는 유령을 믿니?", "She believes his story.": "그녀는 그의 이야기를 믿는다.", "Can I borrow your pen?": "네 펜을 빌려도 될까?", "I borrowed a book.": "나는 책을 빌렸다.", "Don't borrow too much money.": "돈을 너무 많이 빌리지 마.", "Don't break the glass.": "유리잔을 깨지 마.", "He broke the window.": "그는 창문을 깼다.", "Be careful not to break it.": "그것을 깨지 않도록 조심해.", "Please bring your book.": "책을 가져와.", "She brought me lunch.": "그녀는 나에게 점심을 가져다주었다.", "Bring your umbrella.": "우산을 가져가.", "They built a house.": "그들은 집을 지었다.", "We will build a robot.": "우리는 로봇을 만들 것이다.", "He built a small table.": "그는 작은 탁자를 만들었다.", "I want to buy a book.": "나는 책을 사고 싶다.", "She bought new shoes.": "그녀는 새 신발을 샀다.", "We bought some food.": "우리는 음식을 좀 샀다.", "Call me tonight.": "오늘 밤 나에게 전화해.", "I called my friend.": "나는 친구에게 전화했다.", "Give me a call.": "나에게 전화해.", "Please carry this bag.": "이 가방을 들어줘.", "He carries a backpack.": "그는 배낭을 메고 다닌다.", "The truck carried food.": "트럭이 음식을 실어 날랐다.", "Catch the ball.": "공을 잡아.", "I caught a fish.": "나는 물고기를 잡았다.", "Can you catch me?": "나를 잡을 수 있니?", "Change your clothes.": "옷을 갈아입어.", "The weather changed.": "날씨가 변했다.", "We need a change.": "우리에게 변화가 필요하다.", "Choose one answer.": "답 하나를 선택해.", "She chose a red dress.": "그녀는 빨간 드레스를 골랐다.", "You can choose anything.": "너는 무엇이든 선택할 수 있다.", "Clean your room.": "방을 청소해.", "My room is clean.": "내 방은 깨끗하다.", "We cleaned the floor.": "우리는 바닥을 청소했다.", "Close the door.": "문을 닫아.", "The store is close.": "그 가게는 가깝다.", "Please close your eyes.": "눈을 감아.", "I collect coins.": "나는 동전을 모은다.", "She collects stamps.": "그녀는 우표를 모은다.", "Collect the trash.": "쓰레기를 모아.", "Come here.": "여기로 와.", "He came home late.": "그는 늦게 집에 왔다.", "Will you come tomorrow?": "너는 내일 올 거니?", "Complete your homework.": "숙제를 끝내라.", "The project is complete.": "그 프로젝트는 완성되었다.", "I completed the work.": "나는 그 일을 끝냈다.", "Please continue reading.": "계속 읽어.", "The rain continued.": "비가 계속 내렸다.", "We continued our trip.": "우리는 여행을 계속했다.", "I can cook.": "나는 요리할 수 있다.", "My mother cooks dinner.": "엄마는 저녁을 요리한다.", "He is a good cook.": "그는 요리를 잘한다.", "Create something new.": "새로운 것을 만들어라.", "She created a game.": "그녀는 게임을 만들었다.", "They created a robot.": "그들은 로봇을 만들었다.", "Let's dance.": "춤추자.", "She can dance well.": "그녀는 춤을 잘 춘다.", "I love this dance.": "나는 이 춤을 좋아한다.", "Decide quickly.": "빨리 결정해.", "I decided to stay.": "나는 머물기로 결정했다.", "She can't decide.": "그녀는 결정할 수 없다.", "Describe the picture.": "그림을 설명해.", "Can you describe him?": "그를 묘사할 수 있니?", "She described the place.": "그녀는 그 장소를 설명했다.", "I discovered something new.": "나는 새로운 것을 발견했다.", "They discovered a cave.": "그들은 동굴을 발견했다.", "She discovered the answer.": "그녀는 답을 발견했다.", "Draw a picture.": "그림을 그려.", "She drew a cat.": "그녀는 고양이를 그렸다.", "I like to draw.": "나는 그림 그리는 것을 좋아한다.", "I had a strange dream.": "나는 이상한 꿈을 꾸었다.", "Dream big.": "큰 꿈을 가져라.", "She dreams of success.": "그녀는 성공을 꿈꾼다.", "Drink some water.": "물을 좀 마셔.", "I drank milk.": "나는 우유를 마셨다.", "This is my favorite drink.": "이것은 내가 가장 좋아하는 음료다.", "My father can drive.": "아버지는 운전할 수 있다.", "Drive carefully.": "조심해서 운전해.", "She drove home.": "그녀는 집까지 운전했다.", "This question is easy.": "이 질문은 쉽다.", "English is not easy for me.": "나에게 영어는 쉽지 않다.", "It looks easy.": "그것은 쉬워 보인다.", "Eat your breakfast.": "아침을 먹어.", "I ate an apple.": "나는 사과를 먹었다.", "Let's eat together.": "함께 먹자.", "I enjoy music.": "나는 음악을 즐긴다.", "Enjoy your meal.": "맛있게 먹어.", "She enjoyed the trip.": "그녀는 여행을 즐겼다.", "Please explain it.": "그것을 설명해 줘.", "He explained the rule.": "그는 규칙을 설명했다.", "Can you explain again?": "다시 설명할 수 있니?", "Leaves fall in autumn.": "가을에는 나뭇잎이 떨어진다.", "Don't fall.": "넘어지지 마.", "The glass fell down.": "유리잔이 떨어졌다.", "I feel happy.": "나는 행복하다고 느낀다.", "How do you feel?": "기분이 어때?", "She felt tired.": "그녀는 피곤함을 느꼈다.", "Find your book.": "네 책을 찾아.", "I found my key.": "나는 내 열쇠를 찾았다.", "Can you find it?": "그것을 찾을 수 있니?", "Finish your homework.": "숙제를 끝내.", "I finished the book.": "나는 그 책을 다 읽었다.", "The game is finished.": "게임이 끝났다.", "Follow me.": "나를 따라와.", "Please follow the rules.": "규칙을 따라.", "The dog followed me.": "그 개는 나를 따라왔다.", "Don't forget your bag.": "가방을 잊지 마.", "I forgot his name.": "나는 그의 이름을 잊었다.", "She forgot to call me.": "그녀는 나에게 전화하는 것을 잊었다.", "The bird is free.": "새는 자유롭다.", "This is free.": "이것은 무료다.", "I am free today.": "나는 오늘 시간이 있다.", "I got a gift.": "나는 선물을 받았다.", "Get some rest.": "좀 쉬어.", "She gets good grades.": "그녀는 좋은 성적을 받는다.", "Give me the book.": "나에게 그 책을 줘.", "He gave me a present.": "그는 나에게 선물을 주었다.", "Please give it back.": "그것을 돌려줘.", "Go home.": "집에 가.", "I went to school.": "나는 학교에 갔다.", "Let's go together.": "함께 가자.", "Plants grow fast.": "식물은 빨리 자란다.", "Children grow every year.": "아이들은 해마다 자란다.", "Grow your own food.": "직접 먹을 음식을 길러라.", "What happened?": "무슨 일이 있었니?", "It happened yesterday.": "그 일은 어제 일어났다.", "Anything can happen.": "무슨 일이든 일어날 수 있다.", "I can hear you.": "네 목소리가 들린다.", "Did you hear that?": "그것을 들었니?", "She heard a noise.": "그녀는 소리를 들었다.", "Help me, please.": "나를 도와줘.", "I need your help.": "나는 네 도움이 필요하다.", "She helped her friend.": "그녀는 친구를 도왔다.", "Hold my hand.": "내 손을 잡아.", "He held the box.": "그는 상자를 들고 있었다.", "Please hold this.": "이것을 들어줘.", "I hope you are okay.": "네가 괜찮기를 바란다.", "We hope to win.": "우리는 이기기를 바란다.", "Never lose hope.": "절대 희망을 잃지 마.", "This is important.": "이것은 중요하다.", "Your health is important.": "너의 건강은 중요하다.", "Remember the important rule.": "중요한 규칙을 기억해.", "Improve your English.": "영어 실력을 향상시켜.", "I want to improve.": "나는 향상되고 싶다.", "She improved quickly.": "그녀는 빠르게 향상되었다.", "The price includes food.": "가격에 음식이 포함되어 있다.", "Include your name.": "이름을 포함해.", "The list includes ten items.": "그 목록에는 열 가지 항목이 포함되어 있다.", "Let me introduce myself.": "내 소개를 할게.", "He introduced his friend.": "그는 친구를 소개했다.", "I will introduce you.": "내가 너를 소개할게.", "Invite your friends.": "친구들을 초대해.", "She invited me to dinner.": "그녀는 나를 저녁 식사에 초대했다.", "Thank you for inviting me.": "초대해 줘서 고마워.", "Join our team.": "우리 팀에 함께해.", "I joined the club.": "나는 동아리에 가입했다.", "Come and join us.": "와서 우리와 함께해.", "Keep the change.": "잔돈은 가지세요.", "Keep trying.": "계속 노력해.", "Please keep this secret.": "이 비밀을 지켜줘.", "Do you know him?": "너는 그를 아니?", "She knows my name.": "그녀는 내 이름을 안다.", "Learn English every day.": "매일 영어를 배워.", "I learned something new.": "나는 새로운 것을 배웠다.", "We learn at school.": "우리는 학교에서 배운다.", "Leave now.": "지금 떠나.", "He left the room.": "그는 방을 떠났다.", "Don't leave me alone.": "나를 혼자 두고 가지 마.", "Lend me your pen.": "네 펜을 빌려줘.", "She lent me a book.": "그녀는 나에게 책을 빌려주었다.", "Can you lend me money?": "나에게 돈을 빌려줄 수 있니?", "I like pizza.": "나는 피자를 좋아한다.", "She likes music.": "그녀는 음악을 좋아한다.", "It looks like rain.": "비가 올 것 같다.", "Listen carefully.": "잘 들어.", "I listen to music.": "나는 음악을 듣는다.", "Please listen to me.": "내 말을 들어줘.", "I live in Korea.": "나는 한국에 산다.", "They live together.": "그들은 함께 산다.", "Fish live in water.": "물고기는 물속에서 산다.", "Look at me.": "나를 봐.", "Look carefully.": "자세히 봐.", "She looked happy.": "그녀는 행복해 보였다.", "Don't lose your key.": "열쇠를 잃어버리지 마.", "Our team lost.": "우리 팀은 졌다.", "I lost my phone.": "나는 휴대폰을 잃어버렸다.", "I love my family.": "나는 가족을 사랑한다.", "She loves music.": "그녀는 음악을 사랑한다.", "Love is important.": "사랑은 중요하다.", "Make a cake.": "케이크를 만들어.", "I made a mistake.": "나는 실수했다.", "Let's make a plan.": "계획을 세우자.", "What does this mean?": "이것은 무슨 뜻이니?", "I mean it.": "진심이야.", "This word means happy.": "이 단어는 행복하다는 뜻이다.", "Nice to meet you.": "만나서 반가워.", "Let's meet tomorrow.": "내일 만나자.", "I met her yesterday.": "나는 어제 그녀를 만났다."};
+const words=base.slice(0,200);
+let current=0,autoPlay=false,autoTimer,startX=0;
+const $=id=>document.getElementById(id);
+function renderWord(){
+ const w=words[current];$("word").textContent=w[0];$("part").textContent=w[1];$("meaning").textContent=w[2];$("image").textContent=w[3];$("counter").textContent=`${current+1} / ${words.length}`;
+ const ko = exampleTranslations;
+ $("examples").innerHTML=w[4].map((x,i)=>`<div class="example"><div class="example-text"><div>${i+1}. ${x}</div><div style="margin-top:6px;color:#64748b;font-size:.92em">${ko[x] || "한국어 뜻: " + (exampleTranslations[x] || "직접 문맥에 맞게 해석해 보세요.")}</div></div><button class="example-listen" onclick='speak(${JSON.stringify(x)})'>🔊</button></div>`).join("");$("card").scrollTop=0;
+}
+function speak(text){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=.85;speechSynthesis.speak(u)}
+function speakWord(){speak(words[current][0])}
+function animate(dir){const c=$("card");c.style.opacity="0";c.style.transform=dir==="next"?"translateX(-40px)":"translateX(40px)";setTimeout(()=>{renderWord();c.style.transform=dir==="next"?"translateX(40px)":"translateX(-40px)";setTimeout(()=>{c.style.opacity="1";c.style.transform="translateX(0)"},30)},180)}
+function nextWord(){current=(current+1)%words.length;animate("next");resetAuto()}
+function prevWord(){current=(current-1+words.length)%words.length;animate("prev");resetAuto()}
+function startAuto(){clearInterval(autoTimer);if(autoPlay)autoTimer=setInterval(()=>{current=(current+1)%words.length;animate("next")},3000)}
+function toggleAuto(){autoPlay=!autoPlay;const b=$("autoBtn");b.textContent=autoPlay?"⏸ 자동재생":"▶ 자동재생 시작";b.classList.toggle("paused",!autoPlay);startAuto()}
+function resetAuto(){if(autoPlay)startAuto()}
+const area=$("swipeArea");
+area.addEventListener("touchstart",e=>startX=e.touches[0].clientX,{passive:true});
+area.addEventListener("touchend",e=>{const d=e.changedTouches[0].clientX-startX;if(Math.abs(d)>=50)d<0?nextWord():prevWord()},{passive:true});
+area.addEventListener("mousedown",e=>startX=e.clientX);
+area.addEventListener("mouseup",e=>{const d=e.clientX-startX;if(Math.abs(d)>=70)d<0?nextWord():prevWord()});
+document.addEventListener("keydown",e=>{if(e.key==="ArrowRight")nextWord();if(e.key==="ArrowLeft")prevWord()});
+renderWord();startAuto();
+</script>
+</body>
+</html>
