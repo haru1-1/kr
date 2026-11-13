@@ -22,7 +22,7 @@ const careerFields = [
   },
   {
     name: "디자인·제품",
-    weights: { making: 5, observing: 2, writing: 3, teamwork: 2 },
+    weights: { making: 4, observing: 2, writing: 3, teamwork: 2 },
     mission: "자주 쓰는 물건 하나를 골라 불편한 점을 찾고, 종이에 개선된 모습을 10분 동안 그려 보세요."
   }
 ];
