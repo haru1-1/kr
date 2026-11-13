@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="좋아하는 활동을 바탕으로 진로 탐색 분야와 10분 체험 미션을 추천하는 학습용 웹 앱">
+  <title>AI 진로 탐색 코치</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <p class="eyebrow">MY NEXT EXPLORATION</p>
+      <h1>AI 진로 탐색 코치</h1>
+      <p class="header-copy">좋아하는 활동을 점수로 표현하고, 다음에 탐색할 분야를 찾아보세요.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="intro panel" aria-labelledby="intro-title">
+      <div>
+        <p class="section-kicker">01 / 나의 활동 성향</p>
+        <h2 id="intro-title">어떤 활동을 좋아하나요?</h2>
+        <p>각 활동을 얼마나 좋아하는지 0~3점으로 입력하세요. 정답은 없으니 평소의 나를 떠올리면 됩니다.</p>
+      </div>
+      <div class="scale" aria-label="점수 기준">
+        <span><b>0점</b> 관심 없음</span>
+        <span><b>1점</b> 조금 좋아함</span>
+        <span><b>2점</b> 좋아함</span>
+        <span><b>3점</b> 매우 좋아함</span>
+      </div>
+
+      <form id="preference-form" novalidate>
+        <div class="input-grid">
+          <div class="field">
+            <label for="making">🛠️ 만들기</label>
+            <p class="field-help">무언가를 조립하거나 직접 제작하기</p>
+            <input id="making" name="making" type="number" min="0" max="3" step="1" inputmode="numeric" placeholder="0~3" required>
+            <span class="unit">단위: 점 · 입력 범위: 0~3</span>
+          </div>
+          <div class="field">
+            <label for="observing">🔎 관찰하기</label>
+            <p class="field-help">자연이나 현상을 자세히 살펴보기</p>
+            <input id="observing" name="observing" type="number" min="0" max="3" step="1" inputmode="numeric" placeholder="0~3" required>
+            <span class="unit">단위: 점 · 입력 범위: 0~3</span>
+          </div>
+          <div class="field">
+            <label for="writing">✍️ 글쓰기</label>
+            <p class="field-help">생각이나 정보를 글과 이야기로 표현하기</p>
+            <input id="writing" name="writing" type="number" min="0" max="3" step="1" inputmode="numeric" placeholder="0~3" required>
+            <span class="unit">단위: 점 · 입력 범위: 0~3</span>
+          </div>
+          <div class="field">
+            <label for="teamwork">🤝 협업하기</label>
+            <p class="field-help">친구들과 의견을 나누고 함께 해결하기</p>
+            <input id="teamwork" name="teamwork" type="number" min="0" max="3" step="1" inputmode="numeric" placeholder="0~3" required>
+            <span class="unit">단위: 점 · 입력 범위: 0~3</span>
+          </div>
+        </div>
+        <p id="form-message" class="form-message" role="alert" aria-live="polite"></p>
+        <button class="primary-button" type="submit">내 진로 분야 분석하기 <span aria-hidden="true">→</span></button>
+      </form>
+    </section>
+
+    <section id="results" class="results-section" aria-labelledby="results-title" aria-live="polite">
+      <div class="results-heading">
+        <div>
+          <p class="section-kicker">02 / 추천 결과</p>
+          <h2 id="results-title">나의 탐색 분야</h2>
+        </div>
+        <p class="results-note">가상 가중치를 활용한 학습용 추천입니다.</p>
+      </div>
+      <div id="result-list" class="result-list">
+        <div class="empty-state">
+          <span class="empty-icon" aria-hidden="true">✦</span>
+          <h3>아직 분석 결과가 없어요.</h3>
+          <p>위에서 네 가지 활동의 선호도를 입력하고 분석 버튼을 눌러보세요.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="method panel" aria-labelledby="method-title">
+      <p class="section-kicker">03 / 계산 방법</p>
+      <h2 id="method-title">추천 점수는 어떻게 계산할까요?</h2>
+      <p class="formula">분야별 점수 = Σ (활동 선호도 × 분야별 가중치)</p>
+      <p>예를 들어 만들기를 3점으로 입력하고 공학·로봇의 만들기 가중치가 5라면, 만들기 항목은 3 × 5 = 15점입니다. 네 항목의 점수를 모두 더해 분야별 총점을 구합니다.</p>
+      <p class="disclaimer">※ 이 앱은 진로를 확정하거나 적성을 진단하지 않습니다. 분야를 탐색하기 위한 가상 데이터 실습 도구입니다.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>개인정보를 입력하지 않습니다 · 모든 계산은 내 브라우저에서 실행됩니다.</p>
+  </footer>
+</body>
+</html>
